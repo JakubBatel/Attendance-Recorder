@@ -1,5 +1,7 @@
 from typing import Final
 
+from attendance.resources.config import config
+
 import serial
 import time
 
@@ -12,15 +14,15 @@ class CardReader:
 
     def __init__(self):
         self._port = serial.Serial(
-            port='/dev/ttyAMA0',
-            baudrate=9600,
-            parity=serial.PARITY_NONE,
-            stopbits=serial.STOPBITS_ONE,
-            bytesize=serial.EIGHTBITS,
-            timeout=0.5
+            port=config['CardReader']['devPath'],
+            baudrate=int(config['CardReader']['baudrate']),
+            parity=getattr(serial, config['CardReader']['parity']),
+            stopbits=getattr(serial, config['CardReader']['stopbits']),
+            bytesize=getattr(serial, config['CardReader']['bytesize']),
+            timeout=float(config['CardReader']['timeout'])
         )
 
-    def read_card(self):
+    def read_card(self) -> str:
         while True:
             byte = self._port.read()
             if byte == CardReader.INIT_BYTE:
@@ -28,8 +30,8 @@ class CardReader:
                 if len(data) != CardReader.CARD_SIZE:
                     raise ValueError
                 return CardReader.reverse_endianness(data.decode('ascii'))
-            time.sleep(1)
+            time.sleep(0.5)
 
     @staticmethod
-    def reverse_endianness(string: str):
+    def reverse_endianness(string: str) -> str:
         return string.translate(CardReader.TRANSLATION)

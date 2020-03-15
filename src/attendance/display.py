@@ -1,7 +1,8 @@
 from PIL import Image, ImageDraw, ImageFont
 from pkg_resources import resource_filename
-from resources import config
 from typing import Final
+
+from attendance.resources.config import config
 
 import adafruit_ssd1306 as adafruit
 import board
@@ -12,8 +13,8 @@ import resources
 
 class Display:
 
-    WIDTH: Final = 128
-    HEIGHT: Final = 32
+    WIDTH: Final = config['Display']['width']
+    HEIGHT: Final = config['Display']['height']
     ADDRESS: Final = 0x3c
     RESET_PIN: Final = digitalio.DigitalInOut(board.D4)
     MONOCHROMATIC: Final = '1'
