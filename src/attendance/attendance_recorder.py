@@ -1,6 +1,6 @@
-from attendance.display import Display
-from attendance.card_reader import CardReader
 from attendance.api_connection import ISConnection
+from attendance.card_reader import CardReader
+from attendance.display import Display
 
 
 class AttendanceRecorder:

@@ -1,9 +1,10 @@
-import os
-from setuptools import setup, find_namespace_packages
+from os import path
+from setuptools import find_namespace_packages
+from setuptools import setup
 
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(path.join(path.dirname(__file__), fname)).read()
 
 
 setup(

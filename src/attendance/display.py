@@ -1,13 +1,16 @@
-from PIL import Image, ImageDraw, ImageFont
-from pkg_resources import resource_filename
-from typing import Final
-
 from attendance.resources.config import config
 
-import adafruit_ssd1306 as adafruit
-import board
-import digitalio
-import time
+from adafruit_ssd1306 import SSD1306_I2C
+from board import D4
+from board import I2C
+from digitalio import DigitalInOut
+from PIL import Image
+from PIL import ImageDraw
+from PIL import ImageFont
+from pkg_resources import resource_filename
+from time import sleep
+from typing import Final
+
 import resources
 
 
@@ -16,7 +19,7 @@ class Display:
     WIDTH: Final = config['Display']['width']
     HEIGHT: Final = config['Display']['height']
     ADDRESS: Final = 0x3c
-    RESET_PIN: Final = digitalio.DigitalInOut(board.D4)
+    RESET_PIN: Final = DigitalInOut(D4)
     MONOCHROMATIC: Final = '1'
     WHITE: Final = 255
     BLACK: Final = 0
@@ -27,12 +30,16 @@ class Display:
         font_size: int = int(config['Display']['fontsize'])
 
         self.FONT: Final = ImageFont.truetype(font_filename, font_size)
-        self._display: Final = adafruit.SSD1306_I2C(
-            Display.WIDTH, Display.HEIGHT, board.I2C(), addr=Display.ADDRESS,
-            reset=Display.RESET_PIN)
 
-        self._buffer: Image = Image.new(
-            Display.MONOCHROMATIC, (Display.WIDTH, Display.HEIGHT))
+        self._display: Final = SSD1306_I2C(Display.WIDTH,
+                                           Display.HEIGHT,
+                                           I2C(),
+                                           addr=Display.ADDRESS,
+                                           reset=Display.RESET_PIN)
+
+        self._buffer: Image = Image.new(Display.MONOCHROMATIC,
+                                        (Display.WIDTH, Display.HEIGHT))
+
         self._draw = ImageDraw.Draw(self._buffer)
         self.clear(screen_only=True)
 
@@ -63,7 +70,7 @@ class Display:
             self._display.image(self._buffer)
             self._display.show()
 
-            time.sleep(0.05)
+            sleep(0.05)
 
-        time.sleep(1)
+        sleep(1)
         self.clear()

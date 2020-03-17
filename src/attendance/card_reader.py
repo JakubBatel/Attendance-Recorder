@@ -1,9 +1,9 @@
-from typing import Final
-
 from attendance.resources.config import config
 
+from time import sleep
+from typing import Final
+
 import serial
-import time
 
 
 class CardReader:
@@ -30,7 +30,7 @@ class CardReader:
                 if len(data) != CardReader.CARD_SIZE:
                     raise ValueError
                 return CardReader.reverse_endianness(data.decode('ascii'))
-            time.sleep(0.5)
+            sleep(0.5)
 
     @staticmethod
     def reverse_endianness(string: str) -> str:
