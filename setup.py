@@ -11,7 +11,8 @@ setup(
     name="attendance",
     package_dir={"": "src"},
     packages=find_namespace_packages(where="src"),
-    install_requires=["pyserial", "Pillow", "adafruit-circuitpython-ssd1306"],
+    install_requires=["pyserial", "Pillow",
+                      "adafruit-circuitpython-ssd1306", "requests"],
     entry_points={
         "console_scripts": [
             "attendance_recorder = attendance.attendance_recorder:main"
