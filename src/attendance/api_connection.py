@@ -1,4 +1,5 @@
-from attendance.resources.config import config
+from __future__ import annotations
+
 from attendance.utils import is_site_up
 
 from logging import getLogger
@@ -20,20 +21,73 @@ class ISConnectionException(Exception):
         super().__init__(message)
 
 
+class ISConnectionBuilderException(Exception):
+
+    def __init__(self, message):
+        super().__init__(message)
+
+
+class ISConnectionBuilder:
+
+    def __init__(self):
+        self.mac_address: Optional[str] = None
+        self.token: Optional[str] = None
+        self.baseurl: Optional[str] = None
+        self.url: Optional[str] = None
+
+    def get_mac_address(self) -> str:
+        if self.mac_address is None:
+            raise ISConnectionBuilderException('Mac address can not be None.')
+        return self.mac_address
+
+    def set_mac_address(self, mac_address: str) -> ISConnectionBuilder:
+        self.mac_address = mac_address
+        return self
+
+    def get_token(self) -> Optional[str]:
+        return self.token
+
+    def set_token(self, token: str) -> ISConnectionBuilder:
+        self.token = token
+        return self
+
+    def get_baseurl(self) -> str:
+        if self.baseurl is None:
+            return self.get_url()
+        return self.baseurl
+
+    def set_baseurl(self, baseurl: str) -> ISConnectionBuilder:
+        self.baseurl = baseurl
+        return self
+
+    def get_url(self) -> str:
+        if self.url is None:
+            raise ISConnectionBuilderException('Url can not be None.')
+        return self.url
+
+    def set_url(self, url: str) -> ISConnectionBuilder:
+        self.url = url
+        return self
+
+    def build(self) -> ISConnection:
+        return ISConnection(self)
+
+
 class ISConnection:
 
-    def __init__(self, mac_address: str, token: Optional[str] = None):
+    def __init__(self, builder: ISConnectionBuilder):
         self.logger: Logger = getLogger(__name__)
-
-        self._baseurl: str = config['Connection']['baseurl']
+        self._baseurl: str = builder.get_baseurl()
         self.logger.info('Base url set to {0}'.format(self._baseurl))
 
-        self._url: str = config['Connection']['url']
+        self._url: str = builder.get_url()
         self.logger.info('Url set to {0}'.format(self._url))
 
+        mac_address: str = builder.get_mac_address()
         self._data: Dict[str, Union[str, List[str]]] = {'mac': mac_address}
         self.logger.info('Mac address set to {0}'.format(mac_address))
 
+        token: Optional[str] = builder.get_token()
         if token is not None:
             self.set_token(token)
 
@@ -45,9 +99,9 @@ class ISConnection:
     def is_available(self) -> bool:
         available: bool = is_site_up(self._baseurl)
         if available:
-            self.logger.info('Connection to IS MUNI succeeded.')
+            self.logger.info('Connection to the server is available.')
         else:
-            self.logger.warn('Connection to IS MUNI failed.')
+            self.logger.warn('Connection to the server failed.')
         return available
 
     def send_data(self, cardIDs: List[str]) -> Dict[str, Any]:
