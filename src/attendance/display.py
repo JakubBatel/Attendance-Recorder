@@ -15,6 +15,11 @@ import resources
 
 
 class Display:
+    """Class for work with OLED display (SSD1306).
+
+    It works with physical display using I2C communication and Adafruit SSD1306 library.
+    It is configured using config file (config.ini in resources folder).
+    """
 
     WIDTH: Final = config['Display']['width']
     HEIGHT: Final = config['Display']['height']
@@ -25,6 +30,7 @@ class Display:
     BLACK: Final = 0
 
     def __init__(self):
+        """Init class based on config."""
         font_filename: str = resource_filename(
             resources.__name__, config['Display']['font'])
         font_size: int = int(config['Display']['fontsize'])
@@ -43,7 +49,12 @@ class Display:
         self._draw = ImageDraw.Draw(self._buffer)
         self.clear(screen_only=True)
 
-    def clear(self, screen_only: bool = False):
+    def clear(self, screen_only: bool = False) -> None:
+        """Clear display screen and buffer.
+
+        Args:
+            screen_only: If true then buffer is not cleared.
+        """
         if not screen_only:
             self._draw.rectangle(
                 (0, 0, Display.WIDTH, Display.HEIGHT), fill=Display.BLACK)

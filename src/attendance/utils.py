@@ -18,6 +18,11 @@ logger: Logger = logging.getLogger(__name__)
 
 
 def get_mac_address() -> str:
+    """Find mac address and convert it to string.
+
+    Returns:
+        Mac address as string separated by ':'
+    """
     return ':'.join(("%012X" % getnode())[i:i+2] for i in range(0, 12, 2))
 
 
@@ -40,6 +45,15 @@ def create_cache_folder() -> None:
 
 
 def is_site_up(url: str, timeout: float = 5.0) -> bool:
+    """Verify if given URL is accessible.
+
+    Args:
+        url: String representation of URL to verify.
+        timeout: Timeout for the request.
+
+    Returns:
+        True if URL is accessible, false otherwise.
+    """
     try:
         result: Response = requests.get(url, timeout=timeout)
         result.raise_for_status()
@@ -60,6 +74,20 @@ def is_site_up(url: str, timeout: float = 5.0) -> bool:
 
 
 def reverse_endianness(string: str) -> str:
+    """Convert hex string to hex string with opposite endianness.
+
+    E.g.
+    Little endian -> Big endian,
+    Big endian -> Little endian
+
+    Result for non hex string is undefined, no validation is done.
+
+    Args:
+        string: Hex string to convert.
+
+    Returns:
+        Hex string with reverse endianness.
+    """
     translation: Dict[int, Union[int, None]] = str.maketrans(
         '0123456789ABCDEF', '084C2A6E195D3B7F')
-    return string.translate(translation)
+    return string.upper().translate(translation)
