@@ -1,4 +1,3 @@
-from __future__ import annotations
 from logging import Logger
 from os import makedirs
 from os import path
@@ -21,20 +20,35 @@ def get_mac_address() -> str:
     """Find mac address and convert it to string.
 
     Returns:
-        Mac address as string separated by ':'
+        Mac address as string separated by ':'.
     """
-    return ':'.join(("%012X" % getnode())[i:i+2] for i in range(0, 12, 2))
+    return ':'.join(("%012x" % getnode())[i:i+2] for i in range(0, 12, 2))
 
 
 def get_cache_folder_path() -> str:
+    """Get full cache folder path as string.
+
+    As cache folder is used ~/.cache/AttendanceRecorder
+
+    This function expands the path and convert it to string.
+
+    Returns:
+        Full cache folder path as string.
+    """
     return path.join(Path.home(), '.cache', 'AttendanceRecorder')
 
 
 def get_cache_file_path() -> str:
+    """Get cache file full path as string.
+
+    Returns:
+        Full path to cache file.
+    """
     return path.join(get_cache_folder_path(), 'cache')
 
 
 def create_cache_folder() -> None:
+    """Create cache folder acquired from get_cache_folder_path()."""
     cache_folder_path: str = get_cache_folder_path()
     if not path.exists(cache_folder_path):
         logger.debug(
@@ -86,8 +100,8 @@ def reverse_endianness(string: str) -> str:
         string: Hex string to convert.
 
     Returns:
-        Hex string with reverse endianness.
+        Hex lower case string with reverse endianness.
     """
     translation: Dict[int, Union[int, None]] = str.maketrans(
-        '0123456789ABCDEF', '084C2A6E195D3B7F')
-    return string.upper().translate(translation)
+        '0123456789abcdef', '084c2a6e195d3b7f')
+    return string.lower().translate(translation)

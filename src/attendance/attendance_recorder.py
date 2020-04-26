@@ -21,6 +21,11 @@ import re
 
 
 class AttendanceRecorder:
+    """Attendance recorder application.
+
+    Contains everything needed to read cards and send data to IS MUNI.
+    Red cards are saved to cached file until they are successfuly send.
+    """
 
     CARD_REGEX: Final = re.compile('^[0-9A-F]{10}$')
 
@@ -28,6 +33,7 @@ class AttendanceRecorder:
                  display: Display,
                  reader: CardReader,
                  connection: ISConnection):
+        """Inject display, card reader, connection and init cache folder file."""
         self.logger: Logger = getLogger(__name__)
         self._display: Display = display
         self._reader: CardReader = reader
@@ -46,11 +52,18 @@ class AttendanceRecorder:
                 self._add_card(line.strip(), False)
 
     def _clear_cached_cards(self) -> None:
+        """Empty cache file."""
         with open(self._cache_filename, 'w', encoding='utf-8'):
             pass  # open file in write mode to empty it
         self.logger.info('Cache file cleared.')
 
     def _add_card(self, card: str, cache: bool = True) -> None:
+        """Add card to set of red cards.
+
+        Args:
+            card: Card to add.
+            cache: If true then card will be also saved to cache file.
+        """
         if AttendanceRecorder.CARD_REGEX.match(card):
             if card in self._cards:
                 self.logger.debug('Card {0} already contained.'.format(card))
@@ -79,6 +92,7 @@ class AttendanceRecorder:
         pass
 
     def _read_cards(self) -> None:
+        """Start reading cards and sending them to IS MUNI."""
         self.logger.info('Reading cards started.')
         while True:
             self._display.show()  # TODO
