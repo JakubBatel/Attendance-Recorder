@@ -1,4 +1,4 @@
-from attendance.resources.config import config
+from .resources.config import config
 
 from adafruit_ssd1306 import SSD1306_I2C
 from board import D4
@@ -28,6 +28,7 @@ class Display:
     MONOCHROMATIC: Final = '1'
     WHITE: Final = 255
     BLACK: Final = 0
+    TOP: Final = -2
 
     def __init__(self):
         """Init class based on config."""
@@ -46,7 +47,7 @@ class Display:
         self._buffer: Image = Image.new(Display.MONOCHROMATIC,
                                         (Display.WIDTH, Display.HEIGHT))
 
-        self._draw = ImageDraw.Draw(self._buffer)
+        self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
         self.clear(screen_only=True)
 
     def clear(self, screen_only: bool = False) -> None:
@@ -56,26 +57,59 @@ class Display:
             screen_only: If true then buffer is not cleared.
         """
         if not screen_only:
-            self._draw.rectangle(
+            self._buffer_draw.rectangle(
                 (0, 0, Display.WIDTH, Display.HEIGHT), fill=Display.BLACK)
         self._display.fill(Display.BLACK)
         self._display.show()
 
-    def show(self):
-        text = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
-        text_width = self._draw.textsize(text, font=self.FONT)[0]
-        step = 5
-        top = -2
-        for i in range(0, -text_width, -step):
+    def _draw_text_to_buffer(self, text: str, left: int, top: int) -> None:
+        self._buffer_draw.text(
+            (left - Display.TOP, top - Display.TOP), text, font=self.FONT, fill=Display.WHITE)
 
+    def _get_text_width(self, text: str) -> int:
+        """Get width of the text in pixels for used font.
+
+        Args:
+            text: Text which width will be measured.
+
+        Returns:
+            Width of the text in pixels.
+        """
+        return self._buffer_draw.textsize(text, font=self.FONT)[0]
+
+    def _get_text_height(self, text: str) -> int:
+        """Get height of the text in pixels for used font.
+
+        Args:
+            text: Text which height will be measured.
+
+        Returns:
+            Height of the text in pixels.
+        """
+        return self._buffer_draw.textsize(text, font=self.FONT)[1]
+
+    def show(self, fst_line: str, snd_line: str = "") -> None:
+        """Display given two lines in scrolling mode (from right to left).
+
+        Args:
+            fst_line: Text which will be displayed at the first line.
+            snd_line: Text which will be displayed at the second line.
+        """
+        # Calculate actual width of text
+        text_width: int = max(
+            self._get_text_width(fst_line),
+            self._get_text_width(snd_line))
+        # Calculate actual height of text and offset for second line
+        text_height: int = self._get_text_height(fst_line)
+        snd_line_offset: int = 2 * text_height
+
+        for offset in range(0, text_width, 5):
             # Clear display
             self.clear()
 
             # Draw the text
-            self._draw.text((top + i, top), text,
-                            font=self.FONT, fill=Display.WHITE)
-            self._draw.text((top + i + text_width, top), text,
-                            font=self.FONT, fill=Display.WHITE)
+            self._draw_text_to_buffer(fst_line, -offset, 0)
+            self._draw_text_to_buffer(fst_line, -offset, snd_line_offset)
 
             # Display image
             self._display.image(self._buffer)
@@ -83,5 +117,4 @@ class Display:
 
             sleep(0.05)
 
-        sleep(1)
         self.clear()

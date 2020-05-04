@@ -1,5 +1,5 @@
 from os import path
-from setuptools import find_namespace_packages
+from setuptools import find_packages
 from setuptools import setup
 
 
@@ -10,7 +10,7 @@ def read(fname):
 setup(
     name="attendance",
     package_dir={"": "src"},
-    packages=find_namespace_packages(where="src"),
+    packages=find_packages("src"),
     install_requires=["pyserial", "Pillow",
                       "adafruit-circuitpython-ssd1306", "requests"],
     entry_points={

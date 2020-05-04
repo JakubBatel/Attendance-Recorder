@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from attendance.utils import is_site_up
+from .utils import is_site_up
 
 from logging import getLogger
 from logging import Logger
@@ -197,7 +197,7 @@ class ISConnection:
         if available:
             self.logger.info('Connection to the server is available.')
         else:
-            self.logger.warn('Connection to the server failed.')
+            self.logger.warning('Connection to the server failed.')
         return available
 
     def send_data(self, cardIDs: List[str]) -> Dict[str, Any]:
@@ -214,23 +214,24 @@ class ISConnection:
         """
         self._data['cardid'] = cardIDs
         try:
-            response: Response = requests.post(self._url, data=self._data)
+            response: Response = requests.post(self._url, params=self._data)
             response.raise_for_status()
             self.logger.info("Successfuly sent ")
 
             json_response: Dict[str, Any] = json.loads(response.text)
-            self.set_token(json_response['token'])
+            if 'token' in json_response:
+                self.set_token(json_response['token'])
             return json_response
         except requests.ConnectionError:
             msg = "Connection to {0} failed.".format(self._url)
-            self.logger.warn(msg)
+            self.logger.warning(msg)
             raise ISConnectionException(msg)
         except requests.Timeout:
             msg = "Connection to {0} timed out.".format(self._url)
-            self.logger.warn(msg)
+            self.logger.warning(msg)
             raise ISConnectionException(msg)
         except requests.HTTPError as e:
             msg = "Connection to {0} failed. Status code was {1}.".format(
                 self._url, e.response.status_code)
-            self.logger.warn(msg)
+            self.logger.warning(msg)
             raise ISConnectionException(msg)

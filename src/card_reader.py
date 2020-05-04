@@ -1,10 +1,11 @@
-from attendance.resources.config import config
-from attendance.utils import reverse_endianness
+from .resources.config import config
+from .utils import reverse_endianness
 
 from logging import getLogger
 from logging import Logger
 from time import sleep
 from typing import Final
+from typing import Optional
 
 import re
 import serial
@@ -50,6 +51,7 @@ class CardReader:
             bytesize=CardReader.BYTESIZE,
             timeout=CardReader.TIMEOUT
         )
+        self._previous_card: Optional[str] = None
 
     def read_card(self) -> str:
         """Read one card using serial communication.
@@ -72,4 +74,6 @@ class CardReader:
             card: str = reverse_endianness(data.decode('ascii'))
             if not CardReader.CARD_REGEX.match(card):
                 raise CardReaderException('Card data are invalid.')
+            if card == self._previous_card:
+                continue
             return card

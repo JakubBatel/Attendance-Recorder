@@ -1,13 +1,13 @@
-from attendance.api_connection import ISConnection
-from attendance.api_connection import ISConnectionBuilder
-from attendance.api_connection import ISConnectionException
-from attendance.card_reader import CardReader
-from attendance.card_reader import CardReaderException
-from attendance.display import Display
-from attendance.resources.config import config
-from attendance.utils import create_cache_folder
-from attendance.utils import get_cache_file_path
-from attendance.utils import get_mac_address
+from .api_connection import ISConnection
+from .api_connection import ISConnectionBuilder
+from .api_connection import ISConnectionException
+from .card_reader import CardReader
+from .card_reader import CardReaderException
+from .display import Display
+from .resources.config import config
+from .utils import create_cache_folder
+from .utils import get_cache_file_path
+from .utils import get_mac_address
 
 from logging import getLogger
 from logging import Logger
@@ -41,6 +41,11 @@ class AttendanceRecorder:
         self._init_cache_file()
 
     def _init_cache_file(self) -> None:
+        """Initialize cache file.
+
+        Create cache folder if doesn't exist.
+        If cache file already exist loads all previously cached cards.
+        """
         create_cache_folder()
         self._cache_filename: str = get_cache_file_path()
         self._cards: Set[str] = set()
@@ -80,37 +85,40 @@ class AttendanceRecorder:
     def _show_initial_message(self) -> None:
         while True:
             if self._connection.is_available():
-                self._display.show()  # TODO
+                self._display.show("Connection successful")
                 return
-            self._display.show()  # TODO
+            self._display.show("Connection failed!", "Retry in 5 seconds ...")
             sleep(5)
 
     def _show_result(self, result: Dict[str, Any]) -> None:
         pass
 
-    def _show_connection_unavailable(self) -> None:
-        pass
+    def _show_connection_unavailable(self, error_message: str, additional_info: str = "") -> None:
+        self._display.show(error_message, additional_info)
 
     def _read_cards(self) -> None:
         """Start reading cards and sending them to IS MUNI."""
         self.logger.info('Reading cards started.')
         while True:
-            self._display.show()  # TODO
+            self._display.show("Ready to read a card.")
             try:
                 card: str = self._reader.read_card()
                 self._add_card(card)
             except CardReaderException:
-                self._display.show()  # TODO
+                self.logger.debug("Invalid card read")
+                self._display.show("INVALID CARD!", "please try again")
                 continue
             try:
                 result: Dict[str, Any] = self._connection.send_data(
                     list(self._cards))
                 self._clear_cached_cards()
                 self._show_result(result)
-            except ISConnectionException:
-                self._show_connection_unavailable()
+            except ISConnectionException as e:
+                self._show_connection_unavailable(
+                    str(e), "Card was saved and will be send later.")
 
     def start(self) -> None:
+        """Start recording attendance."""
         self.logger.info('Attendance recoreder started.')
         self._show_initial_message()
         self._read_cards()

@@ -1,3 +1,4 @@
+"""Module containing various utility functions."""
 from logging import Logger
 from os import makedirs
 from os import path
@@ -74,15 +75,15 @@ def is_site_up(url: str, timeout: float = 5.0) -> bool:
         logger.info('site {0} is accessible'.format(url))
         return True
     except requests.ConnectionError:
-        logger.warn(
+        logger.warning(
             'site {0} is not accessible, no internet connection'.format(url))
         return False
     except requests.HTTPError as e:
-        logger.warn('site {0} is not accessible, status code was {1}'.format(
+        logger.warning('site {0} is not accessible, status code was {1}'.format(
             url, e.response.status_code))
         return False
     except requests.Timeout:
-        logger.warn(
+        logger.warning(
             'site {0} is not accessible, connection timed out'.format(url))
         return False
 
