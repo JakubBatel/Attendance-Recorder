@@ -2,7 +2,7 @@ build:
 	pyenv exec python setup.py build
 
 install-service:
-	cp service/attendance-recoreder.service /etc/systemd/system/attendance-recoreder.service
+	cp service/attendance-recorder.service /etc/systemd/system/attendance-recorder.service
 
 install: build
 	pyenv exec python setup.py install
