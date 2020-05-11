@@ -1,9 +1,7 @@
 from .resources.config import config
 
-from adafruit_ssd1306 import SSD1306_I2C
-from board import D4
-from board import I2C
-from digitalio import DigitalInOut
+from luma.core.device import device as luma_device
+
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -21,16 +19,11 @@ class Display:
     It is configured using config file (config.ini in resources folder).
     """
 
-    WIDTH: Final = config['Display']['width']
-    HEIGHT: Final = config['Display']['height']
-    ADDRESS: Final = 0x3c
-    RESET_PIN: Final = DigitalInOut(D4)
     MONOCHROMATIC: Final = '1'
     WHITE: Final = 255
     BLACK: Final = 0
-    TOP: Final = -2
 
-    def __init__(self):
+    def __init__(self, device: luma_device):
         """Init class based on config."""
         font_filename: str = resource_filename(
             resources.__name__, config['Display']['font'])
@@ -38,14 +31,10 @@ class Display:
 
         self.FONT: Final = ImageFont.truetype(font_filename, font_size)
 
-        self._display: Final = SSD1306_I2C(Display.WIDTH,
-                                           Display.HEIGHT,
-                                           I2C(),
-                                           addr=Display.ADDRESS,
-                                           reset=Display.RESET_PIN)
+        self._device: Final = device
 
         self._buffer: Image = Image.new(Display.MONOCHROMATIC,
-                                        (Display.WIDTH, Display.HEIGHT))
+                                        (self._device.width, self._device.height))
 
         self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
         self.clear(screen_only=True)
@@ -58,13 +47,12 @@ class Display:
         """
         if not screen_only:
             self._buffer_draw.rectangle(
-                (0, 0, Display.WIDTH, Display.HEIGHT), fill=Display.BLACK)
-        self._display.fill(Display.BLACK)
-        self._display.show()
+                (0, 0, self._device.width, self._device.height), fill=Display.BLACK)
+        self._device.clear()
 
     def _draw_text_to_buffer(self, text: str, left: int, top: int) -> None:
         self._buffer_draw.text(
-            (left - Display.TOP, top - Display.TOP), text, font=self.FONT, fill=Display.WHITE)
+            (left, top), text, font=self.FONT, fill=Display.WHITE)
 
     def _get_text_width(self, text: str) -> int:
         """Get width of the text in pixels for used font.
@@ -112,8 +100,7 @@ class Display:
             self._draw_text_to_buffer(fst_line, -offset, snd_line_offset)
 
             # Display image
-            self._display.image(self._buffer)
-            self._display.show()
+            self._device.display(self._buffer)
 
             sleep(0.05)
 

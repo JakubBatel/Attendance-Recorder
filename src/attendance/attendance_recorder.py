@@ -9,6 +9,9 @@ from .utils import create_cache_folder
 from .utils import get_cache_file_path
 from .utils import get_mac_address
 
+from luma.core.interface.serial import i2c
+from luma.oled.device import sh1106
+
 from logging import getLogger
 from logging import Logger
 from time import sleep
@@ -125,8 +128,10 @@ class AttendanceRecorder:
 
 
 if __name__ == "__main__":
-    builder: ISConnectionBuilder = ISConnectionBuilder()
-    builder.set_mac_address(get_mac_address())
-    builder.set_baseurl(config['Connection']['baseurl'])
-    builder.set_url(config['Connection']['url'])
-    AttendanceRecorder(Display(), CardReader(), builder.build()).start()
+    connection_builder: ISConnectionBuilder = ISConnectionBuilder()
+    connection_builder.set_mac_address(get_mac_address())
+    connection_builder.set_baseurl(config['Connection']['baseurl'])
+    connection_builder.set_url(config['Connection']['url'])
+
+    AttendanceRecorder(Display(sh1106(i2c())), CardReader(),
+                       connection_builder.build()).start()
