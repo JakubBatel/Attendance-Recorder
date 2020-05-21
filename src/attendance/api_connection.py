@@ -2,11 +2,15 @@ from __future__ import annotations
 
 from .utils import is_site_up
 
+from abc import ABC
+from abc import abstractmethod
+from copy import deepcopy
 from logging import getLogger
 from logging import Logger
 from requests import Response
 from typing import Any
 from typing import Dict
+from typing import Final
 from typing import List
 from typing import Optional
 from typing import Union
@@ -15,7 +19,7 @@ import json
 import requests
 
 
-class ISConnectionException(Exception):
+class APIConnectionException(Exception):
     """Custom connection exception."""
 
     def __init__(self, message):
@@ -37,6 +41,76 @@ class ISConnectionBuilderException(Exception):
             message: Error message.
         """
         super().__init__(message)
+
+
+class IConnection(ABC):
+    """Connection to the API.
+
+    Stores authentication token from the API and receives data as JSON.
+    """
+
+    @abstractmethod
+    def set_token(self, token: str) -> None:
+        """Update connection token.
+
+        Args:
+            token: New connection token.
+        """
+        pass
+
+    @abstractmethod
+    def get_token(self) -> Any:
+        """Return token if it is set."""
+
+    @abstractmethod
+    def is_available(self) -> bool:
+        """Verify if API server is reachable.
+
+        Returns:
+            True if connection to the server succeeded, false otherwise.
+        """
+        pass
+
+    @abstractmethod
+    def send_cached_data_only(self, card_ids: List[str]) -> Dict[str, Any]:
+        """Send cached data without actual card.
+
+        Args:
+            card_ids: Cached card IDs.
+
+        Returns:
+            JSON response as dictionary.
+
+        Raises:
+            ISConnectionException: If connection failed for any reason(no internet, timeout, ...)
+        """
+        pass
+
+    @abstractmethod
+    def send_data(self, actual_card_id: str, previous_card_ids: List[str] = []) -> Dict[str, Any]:
+        """Send card data to the API.
+
+        Args:
+            actual_card_id: Currently read card.
+            previous_card_ids: List of all cached card IDs to send.
+
+        Returns:
+            JSON response as dictionary.
+        """
+        pass
+
+    @abstractmethod
+    def send_organizator_data(self, organizator_card_id: str, card_ids: List[str] = []) -> Dict[str, Any]:
+        """Send card data of the organizator to the API.
+
+        Args:
+            organizator_card_id: Card ID of the organizator.
+            card_ids: List of all cached card IDs to send.
+
+        Returns:
+            JSON response as dictionary.
+        """
+        pass
 
 
 class ISConnectionBuilder:
@@ -148,17 +222,20 @@ class ISConnectionBuilder:
             New ISConnection build by current parameters.
 
         Raises:
-            ISConnectionBuilderException: If build failed (some of the required parameters is not set).
+            ISConnectionBuilderException: If build failed(some of the required parameters is not set).
         """
         return ISConnection(self)
 
 
-class ISConnection:
+class ISConnection(IConnection):
     """Class representation of connection to the IS MUNI REST API.
 
     It is used to send card data to the API and acquire response.
     It uses Requests library to make connections.
     """
+
+    TIMEOUT_DEFAULT: Final = (3, 10)
+    TIMEOUT_EXTENDED: Final = (10, 30)
 
     def __init__(self, builder: ISConnectionBuilder):
         """Init class based on builder."""
@@ -187,6 +264,10 @@ class ISConnection:
             self.logger.info('Connection token set to {0}'.format(token))
             self._data['token'] = token
 
+    def get_token(self) -> Any:
+        """Return token if it is set."""
+        return self._data.get('token')
+
     def is_available(self) -> bool:
         """Verify if API server is reachable.
 
@@ -200,21 +281,21 @@ class ISConnection:
             self.logger.warning('Connection to the server failed.')
         return available
 
-    def send_data(self, cardIDs: List[str]) -> Dict[str, Any]:
-        """Send card data to the API.
+    def _send_data(self, timeout: tuple = ISConnection.TIMEOUT_DEFAULT) -> Dict[str, Any]:
+        """Send data to the REST API.
 
         Args:
-            cardIDs: List of all card IDs to send.
+            timeout: Connection timeout.
 
         Returns:
             JSON response as dictionary.
 
         Raises:
-            ISConnectionException: If connection failed for any reason (no internet, timeout, ...)
+            APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
-        self._data['cardid'] = cardIDs
         try:
-            response: Response = requests.post(self._url, params=self._data)
+            response: Response = requests.post(
+                self._url, params=self._data, timeout=timeout)
             response.raise_for_status()
             self.logger.info("Successfuly sent ")
 
@@ -225,13 +306,65 @@ class ISConnection:
         except requests.ConnectionError:
             msg = "Connection to {0} failed.".format(self._url)
             self.logger.warning(msg)
-            raise ISConnectionException(msg)
+            raise APIConnectionException(msg)
         except requests.Timeout:
             msg = "Connection to {0} timed out.".format(self._url)
             self.logger.warning(msg)
-            raise ISConnectionException(msg)
+            raise APIConnectionException(msg)
         except requests.HTTPError as e:
             msg = "Connection to {0} failed. Status code was {1}.".format(
                 self._url, e.response.status_code)
             self.logger.warning(msg)
-            raise ISConnectionException(msg)
+            raise APIConnectionException(msg)
+
+    def send_cached_data_only(self, card_ids: List[str]) -> Dict[str, Any]:
+        """Send cached data without actual card.
+
+        Args:
+            card_ids: Cached card IDs.
+
+        Returns:
+            JSON response as dictionary.
+
+        Raises:
+            APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
+        """
+        self._data['cardid'] = deepcopy(card_ids)
+        return self._send_data()
+
+    def send_data(self, actual_card_id: str, previous_card_ids: List[str] = []) -> Dict[str, Any]:
+        """Send card data to the API.
+
+        Args:
+            actual_card_id: Currently read card.
+            previous_card_ids: List of all cached card IDs to send.
+
+        Returns:
+            JSON response as dictionary.
+
+        Raises:
+            APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
+        """
+        card_ids: List[str] = deepcopy(previous_card_ids)
+        card_ids.append(actual_card_id)
+        self._data['cardid'] = card_ids
+        if len(self._data['cardid']) > 5:
+            # Use extended timeout if many data are send
+            return self._send_data(ISConnection.TIMEOUT_EXTENDED)
+        return self._send_data()
+
+    def send_organizator_data(self, organizator_card_id: str, card_ids: List[str] = []) -> Dict[str, Any]:
+        """Send card data of the organizator to the API.
+
+        Args:
+            organizator_card_id: Card ID of the organizator.
+            card_ids: List of all cached card IDs to send.
+
+        Returns:
+            JSON response as dictionary.
+
+        Raises:
+             APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
+        """
+        self._data['init'] = '1'
+        return self.send_data(organizator_card_id, card_ids)

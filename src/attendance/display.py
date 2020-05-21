@@ -1,7 +1,7 @@
 from .resources.config import config
 
+from abc import ABC
 from luma.core.device import device as luma_device
-
 from PIL import Image
 from PIL import ImageDraw
 from PIL import ImageFont
@@ -12,11 +12,22 @@ from typing import Final
 import resources
 
 
-class Display:
-    """Class for work with OLED display (SSD1306).
+class IDisplay(ABC):
+    """Interface for a display which can show two messages at once."""
 
-    It works with physical display using I2C communication and Adafruit SSD1306 library.
-    It is configured using config file (config.ini in resources folder).
+    def clear(self) -> None:
+        """Clear the display."""
+        pass
+
+    def show(self, msga: str, msgb: str = '') -> None:
+        """Display given two messages where the second one is optional."""
+        pass
+
+
+class OLEDdisplay(IDisplay):
+    """Class for work with OLED display from luma library.
+
+    The display can be configured using the config.ini file in resources folder.
     """
 
     MONOCHROMATIC: Final = '1'
@@ -33,7 +44,7 @@ class Display:
 
         self._device: Final = device
 
-        self._buffer: Image = Image.new(Display.MONOCHROMATIC,
+        self._buffer: Image = Image.new(OLEDdisplay.MONOCHROMATIC,
                                         (self._device.width, self._device.height))
 
         self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
@@ -47,12 +58,12 @@ class Display:
         """
         if not screen_only:
             self._buffer_draw.rectangle(
-                (0, 0, self._device.width, self._device.height), fill=Display.BLACK)
+                (0, 0, self._device.width, self._device.height), fill=OLEDdisplay.BLACK)
         self._device.clear()
 
     def _draw_text_to_buffer(self, text: str, left: int, top: int) -> None:
         self._buffer_draw.text(
-            (left, top), text, font=self.FONT, fill=Display.WHITE)
+            (left, top), text, font=self.FONT, fill=OLEDdisplay.WHITE)
 
     def _get_text_width(self, text: str) -> int:
         """Get width of the text in pixels for used font.
@@ -76,19 +87,19 @@ class Display:
         """
         return self._buffer_draw.textsize(text, font=self.FONT)[1]
 
-    def show(self, fst_line: str, snd_line: str = "") -> None:
+    def show(self, msga: str, msgb: str = '') -> None:
         """Display given two lines in scrolling mode (from right to left).
 
         Args:
-            fst_line: Text which will be displayed at the first line.
-            snd_line: Text which will be displayed at the second line.
+            msga: Text which will be displayed at the first line.
+            msgb: Text which will be displayed at the second line.
         """
         # Calculate actual width of text
         text_width: int = max(
-            self._get_text_width(fst_line),
-            self._get_text_width(snd_line))
+            self._get_text_width(msga),
+            self._get_text_width(msgb))
         # Calculate actual height of text and offset for second line
-        text_height: int = self._get_text_height(fst_line)
+        text_height: int = self._get_text_height(msga)
         snd_line_offset: int = 2 * text_height
 
         for offset in range(0, text_width, 5):
@@ -96,8 +107,8 @@ class Display:
             self.clear()
 
             # Draw the text
-            self._draw_text_to_buffer(fst_line, -offset, 0)
-            self._draw_text_to_buffer(fst_line, -offset, snd_line_offset)
+            self._draw_text_to_buffer(msga, -offset, 0)
+            self._draw_text_to_buffer(msgb, -offset, snd_line_offset)
 
             # Display image
             self._device.display(self._buffer)
