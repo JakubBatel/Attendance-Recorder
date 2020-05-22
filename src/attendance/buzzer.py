@@ -17,7 +17,7 @@ class IBuzzer(ABC):
     """
 
     @abstractmethod
-    def buzz(self, correct: bool) -> None:
+    def beep(self, correct: bool) -> None:
         """Make sound based on input value.
 
         Args:
@@ -42,7 +42,7 @@ class Buzzer(IBuzzer):
         GPIO.setup(self._pin, GPIO.OUT)
         self.logger('{0} pin set as output pin.'.format(self._pin))
 
-    def buzz(self, correct: bool) -> None:
+    def beep(self, correct: bool) -> None:
         """Make sound based on input value.
 
         Single beep for correct and double beep for incorrect.

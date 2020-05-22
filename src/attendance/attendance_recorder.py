@@ -127,7 +127,7 @@ class AttendanceRecorder:
         msga: str = result.get('msga', '')
         msgb: str = result.get('msgb', '')
         self._display.show(msga, msgb)
-        self._buzzer.buzz(not err)
+        self._buzzer.beep(not err)
 
     def _show_connection_unavailable(self, error: APIConnectionException, additional_info: str = "") -> None:
         """Display exception with optional additional info."""
@@ -136,7 +136,7 @@ class AttendanceRecorder:
     def _signalize_invalid_card(self):
         """Signalize that the card data was invalid."""
         self.logger.debug('Invalid card read.')
-        self._buzzer.buzz(False)
+        self._buzzer.beep(False)
         self._display.show('INVALID CARD!', 'please try again.')
 
     def _read_organizator_card(self) -> bool:
@@ -199,6 +199,8 @@ class AttendanceRecorder:
             self._display.show('Ready to read a card.')
             card: str = self._reader.read_card()
             self._add_card(card)
+            self._display.show('Card read successfully.')
+            self._buzzer.beep(True)
         except InvalidDataException:
             self._signalize_invalid_card()
         except NoDataException:
