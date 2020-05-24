@@ -149,13 +149,17 @@ class AttendanceRecorder:
         Returns:
             True if the card was succesfuly read and send to the API without an error response.
         """
-        self.logger.debug('Reading the organizator card.')
+        self.logger.info('Reading the organizator card.')
         while not self._button_controller.is_pushed():
             self._display.show('Please push the button to start.')
             sleep(0.5)
         try:
+            # Show information
             self._display.show('Ready to read an organizator card.')
+
+            # Read card
             card: str = self._reader.read_card()
+
             # Send data to the API
             result: Dict[str, Any] = self._connection.send_organizator_data(
                 card, list(self._cards))
@@ -167,8 +171,10 @@ class AttendanceRecorder:
                 self._state = State(result['state'])
             err: bool = result.get('err', '0') != '0'
 
-            self.logger.debug(
-                'Received response without error from API: {0}'.format(not err))
+            if err:
+                self.logger.warning('Error received from API.')
+            else:
+                self.logger.debug('Received response without error.')
             self._show_result(result, err)
             return not err
         except InvalidDataException:
@@ -181,15 +187,27 @@ class AttendanceRecorder:
     def _read_participant_card_online(self) -> None:
         """Read participant card in online mode."""
         try:
+            # Show information
             self._display.show('Ready to read a card.')
+
+            # Read card
             card: str = self._reader.read_card()
-            result: Dict[str, Any] = self._connection.send_organizator_data(
+
+            # Send card data to API
+            result: Dict[str, Any] = self._connection.send_data(
                 card, list(self._cards))
+
             self._clear_cached_cards()
+
             err: bool = bool(result.get('err', '0'))
-            self.logger.debug(
-                'Received response without error from API: {0}'.format(not err))
+            if err:
+                self.logger.warning('Error received from API.')
+            else:
+                self.logger.debug('Received response without error.')
+
+            # Display results
             self._show_result(result, err)
+
         except InvalidDataException:
             self._signalize_invalid_card()
         except APIConnectionException as e:
@@ -225,6 +243,7 @@ class AttendanceRecorder:
 
     def _read_participant_card(self) -> None:
         """Read participant card based on mode (online/offline)."""
+        self.logger.info('Reading the participant card.')
         if self._state == State.ONLINE:
             self._read_participant_card_online()
 
