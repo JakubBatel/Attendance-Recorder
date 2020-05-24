@@ -1,0 +1,12 @@
+[Unit]
+Description=Attendance recorder application
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+User=pi
+ExecStart=/usr/bin/pyenv activate attendance-recorder && /home/pi/.pyenv/versions/attendance-recorder/bin/python
+
+[Install]
+WantedBy=multi-user.target
