@@ -52,18 +52,18 @@ class OLEDdisplay(IDisplay):
                                         (self._device.width, self._device.height))
 
         self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
-        self.clear(screen_only=True)
+        self.clear(buffer_only=False)
 
-    def clear(self, screen_only: bool = False) -> None:
+    def clear(self, buffer_only: bool = True) -> None:
         """Clear display screen and buffer.
 
         Args:
-            screen_only: If true then buffer is not cleared.
+            buffer_only: If true then only buffer is cleared (faster clean).
         """
-        if not screen_only:
-            self._buffer_draw.rectangle(
-                (0, 0, self._device.width, self._device.height), fill=OLEDdisplay.BLACK)
-        self._device.clear()
+        self._buffer_draw.rectangle(
+            (0, 0, self._device.width, self._device.height), fill=OLEDdisplay.BLACK)
+        if not buffer_only:
+            self._device.clear()
 
     def _draw_text_to_buffer(self, text: str, left: int, top: int) -> None:
         self._buffer_draw.text(
@@ -107,7 +107,7 @@ class OLEDdisplay(IDisplay):
         text_height: int = self._get_text_height(msga)
         snd_line_offset: int = 2 * text_height
 
-        for offset in range(0, text_width, 5):
+        for offset in range(0, text_width, 10):
             # Clear display
             self.clear()
 
