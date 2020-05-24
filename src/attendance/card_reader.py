@@ -114,15 +114,17 @@ class CardReader(ICardReader):
                     continue
 
             if byte != CardReader.INIT_BYTE:
-                raise InvalidDataException('Card data are invalid.')
+                raise InvalidDataException(
+                    'Card data are invalid - invalid initial sequence.')
 
             data = self._port.read(CardReader.CARD_SIZE)
             card: str = reverse_endianness(data.decode('ascii'))
 
             if not CardReader.CARD_REGEX.match(card):
-                raise InvalidDataException('Card data are invalid.')
+                raise InvalidDataException(
+                    'Card data are invalid - incomplete or corrupted data.')
 
-            self.logger.debug(card + 'was read')
+            self.logger.debug(card + ' was read')
 
             if card == self._previous_card:
                 sleep(0.5)
