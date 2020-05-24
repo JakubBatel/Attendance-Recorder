@@ -6,7 +6,6 @@ After=network.target
 Type=simple
 Restart=always
 User=pi
-ExecStart=/usr/bin/pyenv activate attendance-recorder && /home/pi/.pyenv/versions/attendance-recorder/bin/python
-
+ExecStart=/home/pi/.pyenv/versions/attendance-recorder/bin/attendance_recorder
 [Install]
 WantedBy=multi-user.target
