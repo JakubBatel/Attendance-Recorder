@@ -105,11 +105,13 @@ class CardReader(ICardReader):
         while True:
             byte = self._port.read()
 
-            if byte == b'' and raise_if_no_data:
-                raise NoDataException('No card data was read.')
-            else:
-                sleep(0.5)
-                continue
+            if byte == b'':
+                self.logger.debug('No card data.')
+                if raise_if_no_data:
+                    raise NoDataException('No card data was read.')
+                else:
+                    sleep(0.5)
+                    continue
 
             if byte != CardReader.INIT_BYTE:
                 raise InvalidDataException('Card data are invalid.')
@@ -119,6 +121,8 @@ class CardReader(ICardReader):
 
             if not CardReader.CARD_REGEX.match(card):
                 raise InvalidDataException('Card data are invalid.')
+
+            self.logger.debug(card + 'was read')
 
             if card == self._previous_card:
                 sleep(0.5)

@@ -342,6 +342,8 @@ class ISConnection(IConnection):
         Raises:
             APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
+        self.logger.debug('Sending card: ' + actual_card_id +
+                          ', previous cards' + str(previous_card_ids))
         card_ids: List[str] = deepcopy(previous_card_ids)
         card_ids.append(actual_card_id)
         self._data['cardid'] = card_ids
@@ -363,5 +365,6 @@ class ISConnection(IConnection):
         Raises:
              APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
+        self.logger.debug('Sending organizator card: ' + organizator_card_id)
         self._data['init'] = '1'
         return self.send_data(organizator_card_id, card_ids)
