@@ -93,8 +93,8 @@ class AttendanceRecorder:
 
     def _clear_cached_cards(self) -> None:
         """Empty cache file."""
-        with open(self._cache_file_path, 'w', encoding='utf-8'):
-            pass  # open file in write mode to empty it
+        with open(self._cache_file_path, 'w', encoding='utf-8') as f:
+            f.write('{}\n')
         self.logger.info('Cache file cleared.')
 
     def _add_card(self, card: str, cache: bool = True) -> None:
