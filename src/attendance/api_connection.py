@@ -294,7 +294,7 @@ class ISConnection(IConnection):
             response: Response = requests.post(
                 self._url, params=self._data, timeout=timeout)
             response.raise_for_status()
-            self.logger.info("Successfuly sent ")
+            self.logger.info("Successfuly sent - response: " + response.text)
 
             json_response: Dict[str, Any] = json.loads(response.text)
             if 'token' in json_response:
@@ -326,6 +326,7 @@ class ISConnection(IConnection):
         Raises:
             APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
+        self.logger.info('Sending cached cards: ' + str(card_ids))
         self._data['cardid'] = deepcopy(card_ids)
         return self._send_data()
 
@@ -342,8 +343,8 @@ class ISConnection(IConnection):
         Raises:
             APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
-        self.logger.debug('Sending card: ' + actual_card_id +
-                          ', previous cards' + str(previous_card_ids))
+        self.logger.info('Sending card: ' + actual_card_id +
+                         ', previous cards: ' + str(previous_card_ids))
         card_ids: List[str] = deepcopy(previous_card_ids)
         card_ids.append(actual_card_id)
         self._data['cardid'] = card_ids
@@ -365,6 +366,6 @@ class ISConnection(IConnection):
         Raises:
              APIConnectionException: If connection failed for any reason(no internet, timeout, ...)
         """
-        self.logger.debug('Sending organizator card: ' + organizator_card_id)
+        self.logger.info('Sending organizator card: ' + organizator_card_id)
         self._data['init'] = '1'
         return self.send_data(organizator_card_id, card_ids)

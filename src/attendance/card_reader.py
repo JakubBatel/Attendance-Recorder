@@ -115,8 +115,7 @@ class CardReader(ICardReader):
 
             if byte != CardReader.INIT_BYTE:
                 self.logger.warning('Invalid initial sequence.')
-                raise InvalidDataException(
-                    'Card data are invalid - invalid initial sequence.')
+                continue
 
             data = self._port.read(CardReader.CARD_SIZE)
             card: str = reverse_endianness(data.decode('ascii'))
@@ -129,8 +128,7 @@ class CardReader(ICardReader):
             self.logger.info(card + ' was read')
 
             if card == self._previous_card:
-                self.logger.info('Loaded same card as previous.')
-                sleep(0.5)
+                self.logger.info('Loaded same card as previous - skipping.')
                 continue
 
             self._previous_card = card
