@@ -1,12 +1,19 @@
+.PHONY: build
 build:
 	pyenv exec python setup.py build
 
+.PHONY: install-service
 install-service:
 	cp service/attendance-recorder.service /etc/systemd/system/attendance-recorder.service
 
+.PHONY: install
 install: build
 	pyenv exec python setup.py install
 	pyenv exec easy_install dist/*.egg
+
+.PHONY: all
+all: install install-service
+	systemctl enable attendance-recorder.service
 
 .PHONY: clean
 clean:
