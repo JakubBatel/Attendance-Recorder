@@ -265,7 +265,7 @@ class AttendanceRecorder:
 
     def start(self) -> None:
         """Start recording attendance."""
-        self.logger.info('Attendance recoreder started.')
+        self.logger.info('Attendance recording started.')
         self._show_initial_message()
         self._record_cards()
 
