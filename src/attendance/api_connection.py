@@ -61,6 +61,7 @@ class IConnection(ABC):
     @abstractmethod
     def get_token(self) -> Any:
         """Return token if it is set."""
+        pass
 
     @abstractmethod
     def is_available(self) -> bool:
@@ -234,9 +235,6 @@ class ISConnection(IConnection):
     It uses Requests library to make connections.
     """
 
-    TIMEOUT_DEFAULT: Final = (3, 10)
-    TIMEOUT_EXTENDED: Final = (10, 30)
-
     def __init__(self, builder: ISConnectionBuilder):
         """Init class based on builder."""
         self.logger: Logger = getLogger(__name__)
@@ -260,9 +258,8 @@ class ISConnection(IConnection):
         Args:
             token: New connection token.
         """
-        if self._data['token'] != token:
-            self.logger.info('Connection token set to {0}'.format(token))
-            self._data['token'] = token
+        self.logger.info('Connection token set to {0}'.format(token))
+        self._data['token'] = token
 
     def get_token(self) -> Any:
         """Return token if it is set."""
@@ -281,7 +278,7 @@ class ISConnection(IConnection):
             self.logger.warning('Connection to the server failed.')
         return available
 
-    def _send_data(self, timeout: tuple = ISConnection.TIMEOUT_DEFAULT) -> Dict[str, Any]:
+    def _send_data(self, timeout: tuple = (3, 10)) -> Dict[str, Any]:
         """Send data to the REST API.
 
         Args:
@@ -350,7 +347,7 @@ class ISConnection(IConnection):
         self._data['cardid'] = card_ids
         if len(self._data['cardid']) > 5:
             # Use extended timeout if many data are send
-            return self._send_data(ISConnection.TIMEOUT_EXTENDED)
+            return self._send_data((10, 30))
         return self._send_data()
 
     def send_organizator_data(self, organizator_card_id: str, card_ids: List[str] = []) -> Dict[str, Any]:

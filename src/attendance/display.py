@@ -19,8 +19,14 @@ class IDisplay(ABC):
         """Clear the display."""
         pass
 
-    def show(self, msga: str, msgb: str = '') -> None:
-        """Display given two messages where the second one is optional."""
+    def show(self, msga: str, msgb: str = '', clear_afterwards: bool = False) -> None:
+        """Display given two messages where the second one is optional.
+
+        Args:
+            msga: Text which will be displayed at the first line.
+            msgb: Text which will be displayed at the second line.
+            clear_afterwards: Decides if the display is cleard after the text is shown.
+        """
         pass
 
 
@@ -87,12 +93,13 @@ class OLEDdisplay(IDisplay):
         """
         return self._buffer_draw.textsize(text, font=self.FONT)[1]
 
-    def show(self, msga: str, msgb: str = '') -> None:
+    def show(self, msga: str, msgb: str = '', clear_afterwards: bool = False) -> None:
         """Display given two lines in scrolling mode (from right to left).
 
         Args:
             msga: Text which will be displayed at the first line.
             msgb: Text which will be displayed at the second line.
+            clear_afterwards: Decides if the display is cleard after the text is shown.
         """
         # Calculate actual width of text
         text_width: int = max(
@@ -116,3 +123,6 @@ class OLEDdisplay(IDisplay):
             sleep(0.05)
 
         self.clear()
+        if not clear_afterwards:
+            self._draw_text_to_buffer(msga, 0, 0)
+            self._draw_text_to_buffer(msgb, 0, snd_line_offset)

@@ -26,7 +26,7 @@ setup(
     author_email="jakub.batel.jb@gmail.com",
     description=(
         "Application which record attendance using ISIC card and sends the"
-        " results to IS MUNI"),
+        " results to the Information System of the Masaryk University (IS MUNI)"),
     license="MIT",
     keywords="attendance recorder muni",
     url="",
