@@ -2,8 +2,12 @@
 build:
 	pyenv exec python setup.py build
 
+.PHONY: create-venv
+create-venv:
+	pyenv virtualenv 3.8.1 attendance-recorder
+
 .PHONY: install-service
-install-service:
+install-service: create-venv
 	cp service/attendance-recorder.service /etc/systemd/system/attendance-recorder.service
 
 .PHONY: install

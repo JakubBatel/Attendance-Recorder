@@ -22,7 +22,7 @@ setup(
         "attendance.resources": ["*.ttf", "*.ini"]
     },
     version="0.0.1",
-    author="Jakub Bateľ",
+    author="Jakub Batel",
     author_email="jakub.batel.jb@gmail.com",
     description=(
         "Application which record attendance using ISIC card and sends the"
