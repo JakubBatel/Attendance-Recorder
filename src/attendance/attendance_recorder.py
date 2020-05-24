@@ -247,7 +247,7 @@ class AttendanceRecorder:
         self._record_cards()
 
 
-if __name__ == '__main__':
+def main():
     connection_builder: ISConnectionBuilder = ISConnectionBuilder()
     connection_builder.set_mac_address(get_mac_address())
     connection_builder.set_baseurl(config['Connection']['baseurl'])
@@ -258,3 +258,7 @@ if __name__ == '__main__':
                        connection_builder.build(),
                        Buzzer(),
                        ButtonController()).start()
+
+
+if __name__ == '__main__':
+    main()

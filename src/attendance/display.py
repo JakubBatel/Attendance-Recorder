@@ -9,8 +9,6 @@ from pkg_resources import resource_filename
 from time import sleep
 from typing import Final
 
-import resources
-
 
 class IDisplay(ABC):
     """Interface for a display which can show two messages at once."""
