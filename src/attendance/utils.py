@@ -27,25 +27,25 @@ def get_mac_address() -> str:
 
 
 def get_cache_folder_path() -> str:
-    """Get full cache folder path as string.
+    """Get absolute cache folder path as string.
 
     As cache folder is used ~/.cache/AttendanceRecorder
 
     This function expands the path and convert it to string.
 
     Returns:
-        Full cache folder path as string.
+        Absolute path to cache folder as string.
     """
     return path.join(Path.home(), '.cache', 'AttendanceRecorder')
 
 
-def get_cache_file_path() -> str:
-    """Get cache file full path as string.
+def get_cache_file_path() -> Path:
+    """Get cache file path.
 
     Returns:
-        Full path to cache file.
+        Absolute path to cache file.
     """
-    return path.join(get_cache_folder_path(), 'cache')
+    return Path(get_cache_folder_path(), 'cache')
 
 
 def create_cache_folder() -> None:

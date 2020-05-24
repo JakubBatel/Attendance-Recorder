@@ -23,6 +23,7 @@ from luma.oled.device import sh1106
 from enum import Enum
 from logging import getLogger
 from logging import Logger
+from pathlib import Path
 from time import sleep
 from typing import Any
 from typing import Dict
@@ -73,13 +74,15 @@ class AttendanceRecorder:
         If cache file already exist loads all previously cached cards.
         """
         create_cache_folder()
-        self._cache_filename: str = get_cache_file_path()
+        self._cache_file_path: Path = Path(get_cache_file_path())
         self._cards: Set[str] = set()
         self._load_cached_data()
 
     def _load_cached_data(self) -> None:
         """Load cached cards and token from cache file."""
-        with open(self._cache_filename, 'r', encoding='utf-8') as json_file:
+        if not self._cache_file_path.exists():
+            return
+        with open(self._cache_file_path, 'r', encoding='utf-8') as json_file:
             data: Dict[str, Any] = json.load(json_file)
             if 'token' in data:
                 self._connection.set_token(data['token'])
@@ -89,7 +92,7 @@ class AttendanceRecorder:
 
     def _clear_cached_cards(self) -> None:
         """Empty cache file."""
-        with open(self._cache_filename, 'w', encoding='utf-8'):
+        with open(self._cache_file_path, 'w', encoding='utf-8'):
             pass  # open file in write mode to empty it
         self.logger.info('Cache file cleared.')
 
@@ -106,7 +109,7 @@ class AttendanceRecorder:
                 return
             self._cards.add(card)
             if cache:
-                with open(self._cache_filename, 'w', encoding='utf-8') as json_file:
+                with open(self._cache_file_path, 'w', encoding='utf-8') as json_file:
                     json.dump({
                         'token': self._connection.get_token(),
                         'cards': list(self._cards)
