@@ -32,6 +32,7 @@ from typing import Optional
 from typing import Set
 
 import json
+import logging
 import re
 
 
@@ -251,6 +252,10 @@ class AttendanceRecorder:
 
 
 def main():
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format='%(asctime)s -- %(name)s %(levelname)s - %(message)s')
+
     connection_builder: ISConnectionBuilder = ISConnectionBuilder()
     connection_builder.set_mac_address(get_mac_address())
     connection_builder.set_baseurl(config['Connection']['baseurl'])
