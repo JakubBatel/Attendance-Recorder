@@ -41,7 +41,7 @@ class OLEDdisplay(IDisplay):
     def __init__(self, device: luma_device):
         """Init class based on config."""
         font_filename: str = resource_filename(
-            'resources', config['Display']['font'])
+            'attendance.resources', config['Display']['font'])
         font_size: int = int(config['Display']['fontsize'])
 
         self.FONT: Final = ImageFont.truetype(font_filename, font_size)
