@@ -219,7 +219,7 @@ class AttendanceRecorder:
         """Read participant card in offline mode."""
         try:
             self._display.show('Ready to read a card.')
-            card: str = self._reader.read_card()
+            card: str = self._reader.read_card(True)
             self._add_card(card)
             self._display.show('Card read successfully.', can_be_killed=False)
             self._buzzer.beep(True)
