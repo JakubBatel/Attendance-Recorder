@@ -139,7 +139,7 @@ class OLEDdisplay(IDisplay):
             msgb: Text which will be displayed at the second line.
         """
         if self._previous_args is not None and self._previous_args == (msga, msgb):
-            pass
+            return
 
         if self._process is not None:
             self._process.terminate()
