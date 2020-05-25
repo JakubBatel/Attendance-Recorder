@@ -279,6 +279,10 @@ class ISConnection(IConnection):
         return available
 
     def _clear_data(self):
+        """Remove stored data.
+
+        Called after the data are succesfuly sent.
+        """
         # Remove sent cards
         if 'cardid' in self._data:
             del self._data['cardid']

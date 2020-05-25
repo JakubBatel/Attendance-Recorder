@@ -106,6 +106,7 @@ class CardReader(ICardReader):
             byte = self._port.read()
 
             if byte == b'':
+                self._previous_card = None
                 self.logger.debug('No card data.')
                 if raise_if_no_data:
                     raise NoDataException('No card data was read.')
