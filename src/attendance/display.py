@@ -1,6 +1,7 @@
 from .resources.config import config
 
 from abc import ABC
+from ctypes import c_bool
 from luma.core.device import device as luma_device
 from PIL import Image
 from PIL import ImageDraw
@@ -8,6 +9,7 @@ from PIL import ImageFont
 from pkg_resources import resource_filename
 from time import sleep
 from multiprocessing import Process
+from multiprocessing import Value
 from typing import Final
 from typing import Optional
 from typing import Tuple
@@ -20,12 +22,13 @@ class IDisplay(ABC):
         """Clear the display."""
         pass
 
-    def show(self, msga: str, msgb: str = '') -> None:
+    def show(self, msga: str, msgb: str = '', can_be_killed: bool = True) -> None:
         """Display given two messages where the second one is optional.
 
         Args:
             msga: Text which will be displayed at the first line.
             msgb: Text which will be displayed at the second line.
+            can_be_killed: If false text is displayed whole at least once.
         """
         pass
 
@@ -55,6 +58,7 @@ class OLEDdisplay(IDisplay):
 
         self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
         self._process: Optional[Process] = None
+        self._can_be_killed: Value = Value(c_bool, True)
         self._previous_args: Optional[Tuple[str, str]] = None
         self.clear(buffer_only=False)
 
@@ -128,8 +132,9 @@ class OLEDdisplay(IDisplay):
                 self._device.display(self._buffer)
 
                 sleep(0.05)
+            self._can_be_killed.value = True
 
-    def show(self, msga: str, msgb: str = '') -> None:
+    def show(self, msga: str, msgb: str = '', can_be_killed: bool = True) -> None:
         """Display given two lines in scrolling mode (from right to left).
 
         The process is run in parallel so is non blocking operation.
@@ -141,9 +146,10 @@ class OLEDdisplay(IDisplay):
         if self._previous_args is not None and self._previous_args == (msga, msgb):
             return
 
-        if self._process is not None:
+        if self._process is not None and self._can_be_killed.value:
             self._process.terminate()
 
+        self._can_be_killed.value = can_be_killed
         self._previous_args = (msga, msgb)
         self._process = Process(target=self._show, args=(msga, msgb))
         self._process.start()

@@ -123,16 +123,15 @@ class AttendanceRecorder:
             if self._connection.is_available():
                 self._display.show('Connection successful')
                 return
-            self._display.show('Connection failed!', 'Retry in 5 seconds ...')
-            sleep(5)
+            self._display.show('Connection failed!',
+                               'Retry in 5 seconds ...', False)
 
     def _show_result(self, result: Dict[str, Any], err: bool) -> None:
         """Display the data received from API."""
         msga: str = result.get('msga', '')
         msgb: str = result.get('msgb', '')
-        self._display.show(msga, msgb)
+        self._display.show(msga, msgb, False)
         self._buzzer.beep(not err)
-        sleep(1)
 
     def _show_connection_unavailable(self, error: APIConnectionException, additional_info: str = "") -> None:
         """Display exception with optional additional info."""
@@ -142,8 +141,7 @@ class AttendanceRecorder:
         """Signalize that the card data was invalid."""
         self.logger.debug('Invalid card read.')
         self._buzzer.beep(False)
-        self._display.show('INVALID CARD!', 'please try again.')
-        sleep(1)
+        self._display.show('INVALID CARD!', 'please try again.', False)
 
     def _read_organizator_card(self) -> bool:
         """Read organizator card and send it to API with all the previously read cards.
@@ -223,9 +221,8 @@ class AttendanceRecorder:
             self._display.show('Ready to read a card.')
             card: str = self._reader.read_card()
             self._add_card(card)
-            self._display.show('Card read successfully.')
+            self._display.show('Card read successfully.', can_be_killed=False)
             self._buzzer.beep(True)
-            sleep(1)
         except InvalidDataException:
             self._signalize_invalid_card()
         except NoDataException:
@@ -237,8 +234,8 @@ class AttendanceRecorder:
             try:
                 self._connection.send_cached_data_only(list(self._cards))
                 self._clear_cached_cards()
-                self._display.show('Cached card IDs succesfully sent.')
-                sleep(1)
+                self._display.show('Cached card IDs succesfully sent.',
+                                   can_be_killed=False)
                 break
             except APIConnectionException as e:
                 self._display.show(
