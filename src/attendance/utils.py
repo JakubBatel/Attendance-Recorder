@@ -75,15 +75,15 @@ def is_site_up(url: str, timeout: float = 5.0) -> bool:
         logger.info('site {0} is accessible'.format(url))
         return True
     except requests.ConnectionError:
-        logger.warning(
+        logger.debug(
             'site {0} is not accessible, no internet connection'.format(url))
         return False
     except requests.HTTPError as e:
-        logger.warning('site {0} is not accessible, status code was {1}'.format(
+        logger.debug('site {0} is not accessible, status code was {1}'.format(
             url, e.response.status_code))
         return False
     except requests.Timeout:
-        logger.warning(
+        logger.debug(
             'site {0} is not accessible, connection timed out'.format(url))
         return False
 

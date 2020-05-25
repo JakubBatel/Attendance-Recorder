@@ -95,7 +95,7 @@ class AttendanceRecorder:
         """Empty cache file."""
         with open(self._cache_file_path, 'w', encoding='utf-8') as f:
             f.write('{}\n')
-        self.logger.info('Cache file cleared.')
+        self.logger.debug('Cache file cleared.')
 
     def _add_card(self, card: str, cache: bool = True) -> None:
         """Add card to set of read cards.
@@ -143,6 +143,7 @@ class AttendanceRecorder:
         self.logger.debug('Invalid card read.')
         self._buzzer.beep(False)
         self._display.show('INVALID CARD!', 'please try again.')
+        sleep(1)
 
     def _read_organizator_card(self) -> bool:
         """Read organizator card and send it to API with all the previously read cards.
@@ -150,7 +151,7 @@ class AttendanceRecorder:
         Returns:
             True if the card was succesfuly read and send to the API without an error response.
         """
-        self.logger.info('Reading the organizator card.')
+        self.logger.debug('Reading the organizator card.')
         while not self._button_controller.is_pushed():
             self._display.show('Please push the button to start.')
             sleep(0.5)
@@ -173,7 +174,7 @@ class AttendanceRecorder:
             err: bool = result.get('err', '0') != '0'
 
             if err:
-                self.logger.warning('Error received from API.')
+                self.logger.debug('Error received from API.')
             else:
                 self.logger.debug('Received response without error.')
             self._show_result(result, err)
@@ -202,7 +203,7 @@ class AttendanceRecorder:
 
             err: bool = bool(result.get('err', '0'))
             if err:
-                self.logger.warning('Error received from API.')
+                self.logger.debug('Error received from API.')
             else:
                 self.logger.debug('Received response without error.')
 
@@ -246,7 +247,7 @@ class AttendanceRecorder:
 
     def _read_participant_card(self) -> None:
         """Read participant card based on mode (online/offline)."""
-        self.logger.info('Reading the participant card.')
+        self.logger.debug('Reading the participant card.')
         if self._state == State.ONLINE:
             self._read_participant_card_online()
 

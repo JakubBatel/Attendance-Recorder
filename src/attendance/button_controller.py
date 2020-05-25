@@ -39,6 +39,9 @@ class ButtonController(IButtonController):
         GPIO.setup(out_pin, GPIO.OUT)
         GPIO.output(out_pin, GPIO.HIGH)
 
+        self.logger.debug('{0} pin set as output pin.'.format(out_pin))
+        self.logger.debug('{0} pin set as input pin.'.format(self._pin))
+
     def is_pushed(self) -> bool:
         """Check if the button is pushed or not.
 
