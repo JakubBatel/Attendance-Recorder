@@ -7,7 +7,10 @@ from PIL import ImageDraw
 from PIL import ImageFont
 from pkg_resources import resource_filename
 from time import sleep
+from multiprocessing import Process
 from typing import Final
+from typing import Optional
+from typing import Tuple
 
 
 class IDisplay(ABC):
@@ -17,13 +20,12 @@ class IDisplay(ABC):
         """Clear the display."""
         pass
 
-    def show(self, msga: str, msgb: str = '', clear_afterwards: bool = False) -> None:
+    def show(self, msga: str, msgb: str = '') -> None:
         """Display given two messages where the second one is optional.
 
         Args:
             msga: Text which will be displayed at the first line.
             msgb: Text which will be displayed at the second line.
-            clear_afterwards: Decides if the display is cleard after the text is shown.
         """
         pass
 
@@ -52,6 +54,8 @@ class OLEDdisplay(IDisplay):
                                         (self._device.width, self._device.height))
 
         self._buffer_draw: ImageDraw.Draw = ImageDraw.Draw(self._buffer)
+        self._process: Optional[Process] = None
+        self._previous_args: Optional[Tuple[str, str]] = None
         self.clear(buffer_only=False)
 
     def clear(self, buffer_only: bool = True) -> None:
@@ -91,13 +95,12 @@ class OLEDdisplay(IDisplay):
         """
         return self._buffer_draw.textsize(text, font=self.FONT)[1]
 
-    def show(self, msga: str, msgb: str = '', clear_afterwards: bool = False) -> None:
+    def _show(self, msga: str, msgb: str) -> None:
         """Display given two lines in scrolling mode (from right to left).
 
         Args:
             msga: Text which will be displayed at the first line.
             msgb: Text which will be displayed at the second line.
-            clear_afterwards: Decides if the display is cleard after the text is shown.
         """
         # Calculate actual width of text
         text_width: int = max(
@@ -106,21 +109,41 @@ class OLEDdisplay(IDisplay):
         # Calculate actual height of text and offset for second line
         text_height: int = self._get_text_height(msga)
         snd_line_offset: int = 2 * text_height
+        second_offset: int = max(text_width, self._device.width) + 5
 
-        for offset in range(0, text_width, 10):
-            # Clear display
-            self.clear()
+        while True:
+            for offset in range(0, text_width, 10):
+                # Clear display
+                self.clear()
 
-            # Draw the text
-            self._draw_text_to_buffer(msga, -offset, 0)
-            self._draw_text_to_buffer(msgb, -offset, snd_line_offset)
+                # Draw the text
+                self._draw_text_to_buffer(msga, -offset, 0)
+                self._draw_text_to_buffer(msgb, -offset, snd_line_offset)
 
-            # Display image
-            self._device.display(self._buffer)
+                self._draw_text_to_buffer(msga, second_offset - offset, 0)
+                self._draw_text_to_buffer(
+                    msgb, second_offset - offset, snd_line_offset)
 
-            sleep(0.05)
+                # Display image
+                self._device.display(self._buffer)
 
-        self.clear()
-        if not clear_afterwards:
-            self._draw_text_to_buffer(msga, 0, 0)
-            self._draw_text_to_buffer(msgb, 0, snd_line_offset)
+                sleep(0.05)
+
+    def show(self, msga: str, msgb: str = '') -> None:
+        """Display given two lines in scrolling mode (from right to left).
+
+        The process is run in parallel so is non blocking operation.
+
+        Args:
+            msga: Text which will be displayed at the first line.
+            msgb: Text which will be displayed at the second line.
+        """
+        if self._previous_args is not None and self._previous_args == (msga, msgb):
+            pass
+
+        if self._process is not None:
+            self._process.terminate()
+
+        self._previous_args = (msga, msgb)
+        self._process = Process(target=self._show, args=(msga, msgb))
+        self._process.start()
