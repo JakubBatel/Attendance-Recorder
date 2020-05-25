@@ -7,7 +7,6 @@ from logging import getLogger
 from logging import Logger
 from time import sleep
 from typing import Final
-from typing import Optional
 
 import re
 import serial
@@ -84,7 +83,6 @@ class CardReader(ICardReader):
             bytesize=CardReader.BYTESIZE,
             timeout=CardReader.TIMEOUT
         )
-        self._previous_card: Optional[str] = None
 
     def read_card(self, raise_if_no_data: bool = False) -> str:
         """Read one card using serial communication.
@@ -106,7 +104,6 @@ class CardReader(ICardReader):
             byte = self._port.read()
 
             if byte == b'':
-                self._previous_card = None
                 self.logger.debug('No card data.')
                 if raise_if_no_data:
                     raise NoDataException('No card data was read.')
@@ -128,9 +125,7 @@ class CardReader(ICardReader):
 
             self.logger.info(card + ' was read')
 
-            if card == self._previous_card:
-                self.logger.debug('Loaded same card as previous - skipping.')
-                continue
+            while self._port.read() != b'':
+                continue  # consume all residual data
 
-            self._previous_card = card
             return card
