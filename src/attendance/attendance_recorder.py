@@ -132,6 +132,7 @@ class AttendanceRecorder:
         msgb: str = result.get('msgb', '')
         self._display.show(msga, msgb)
         self._buzzer.beep(not err)
+        sleep(1)
 
     def _show_connection_unavailable(self, error: APIConnectionException, additional_info: str = "") -> None:
         """Display exception with optional additional info."""
@@ -223,6 +224,7 @@ class AttendanceRecorder:
             self._add_card(card)
             self._display.show('Card read successfully.')
             self._buzzer.beep(True)
+            sleep(1)
         except InvalidDataException:
             self._signalize_invalid_card()
         except NoDataException:
@@ -235,6 +237,7 @@ class AttendanceRecorder:
                 self._connection.send_cached_data_only(list(self._cards))
                 self._clear_cached_cards()
                 self._display.show('Cached card IDs succesfully sent.')
+                sleep(1)
                 break
             except APIConnectionException as e:
                 self._display.show(

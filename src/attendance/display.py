@@ -109,7 +109,7 @@ class OLEDdisplay(IDisplay):
         # Calculate actual height of text and offset for second line
         text_height: int = self._get_text_height(msga)
         snd_line_offset: int = 2 * text_height
-        second_offset: int = max(text_width, self._device.width) + 5
+        second_offset: int = max(text_width, self._device.width) + 10
 
         while True:
             for offset in range(0, text_width, 10):
