@@ -199,7 +199,7 @@ class AttendanceRecorder:
 
             self._clear_cached_cards()
 
-            err: bool = bool(result.get('err', '0'))
+            err: bool = result.get('err', '0') != '0'
             if err:
                 self.logger.debug('Error received from API.')
             else:
