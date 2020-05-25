@@ -146,7 +146,9 @@ class OLEDdisplay(IDisplay):
         if self._previous_args is not None and self._previous_args == (msga, msgb):
             return
 
-        if self._process is not None and self._can_be_killed.value:
+        if self._process is not None:
+            while not self._can_be_killed.value:
+                sleep(1)
             self._process.terminate()
 
         self._can_be_killed.value = can_be_killed
