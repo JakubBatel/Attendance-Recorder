@@ -278,6 +278,14 @@ class ISConnection(IConnection):
             self.logger.warning('Connection to the server failed.')
         return available
 
+    def _clear_data(self):
+        # Remove sent cards
+        if 'cardid' in self._data:
+            del self._data['cardid']
+        # Remove init arg
+        if 'init' in self._data:
+            del self._data['init']
+
     def _send_data(self, timeout: tuple = (3, 10)) -> Dict[str, Any]:
         """Send data to the REST API.
 
@@ -315,6 +323,8 @@ class ISConnection(IConnection):
                 self._url, e.response.status_code)
             self.logger.warning(msg)
             raise APIConnectionException(msg)
+        finally:
+            self._clear_data()
 
     def send_cached_data_only(self, card_ids: List[str]) -> Dict[str, Any]:
         """Send cached data without actual card.
