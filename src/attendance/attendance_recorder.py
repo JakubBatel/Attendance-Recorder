@@ -50,7 +50,7 @@ class AttendanceRecorder:
     Red cards are saved to cached file until they are successfuly send.
     """
 
-    CARD_REGEX: Final = re.compile('^[0-9A-F]{10}$')
+    CARD_REGEX: Final = re.compile('^[0-9a-f]{10}$')
 
     def __init__(self,
                  display: IDisplay,
