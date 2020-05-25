@@ -293,7 +293,7 @@ class ISConnection(IConnection):
         try:
             self.logger.info('Sending {0}'.format(self._data))
             response: Response = requests.post(
-                self._url, params=self._data, timeout=timeout)
+                self._url, data=self._data, timeout=timeout)
             response.raise_for_status()
             self.logger.info(
                 "Successfuly sent - response: {0}".format(response.text))
