@@ -127,3 +127,7 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
+
+# FreeCAD model and svg
+*.FCStd
+*.svg
